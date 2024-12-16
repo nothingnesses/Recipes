@@ -44,6 +44,7 @@ const FindRecipes = () => {
 
 	return (
 		<div>
+			<h2>Find Recipe</h2>
 			<input
 				type="text"
 				value={inputText}
@@ -62,7 +63,7 @@ const FindRecipes = () => {
 			</ul>
 			<button onClick={handleSubmit}>Submit</button>
 			<div>
-				<h2>Recipes</h2>
+				<h2>Recipe Results</h2>
 				{recipes.length > 0 ? (
 					<ul>
 						{recipes.map((recipeDetail, index) => (
