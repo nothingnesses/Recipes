@@ -1,5 +1,5 @@
 # Recipes
-Web app to store and find recipes.
+Web app to store and find recipes, made as the final project for CS50 2024.
 
 ## Set up
 1. Install the [Nix package manager](https://nixos.org/download/#nix-install-linux)
