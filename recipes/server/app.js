@@ -93,27 +93,27 @@ app.delete("/api/delete-recipe/:id", function (req, res, next) {
 	}
 });
 
-app.post("/api/find-recipe", async function (req, res, next) {
+app.post("/api/find-recipes", async function (req, res, next) {
 	try {
 		const recipes = await db.any(
 			`
-			WITH ingredient_filter AS (
-				SELECT ir.recipe_id
-				FROM ingredients_recipes ir
-				JOIN ingredients i ON ir.ingredient_id = i.id
-				WHERE i.name IN ($1:csv)
-				GROUP BY ir.recipe_id
+			WITH provided_ingredients AS (
+				SELECT id
+				FROM ingredients
+				WHERE name IN ($1:csv)
 			),
-			recipe_filter AS (
-				SELECT r.id
+			valid_recipes AS (
+				SELECT r.id AS recipe_id
 				FROM recipes r
-				WHERE r.name ILIKE '%' || $2 || '%'
+				JOIN ingredients_recipes ir ON ir.recipe_id = r.id
+				WHERE ir.ingredient_id IN (SELECT id FROM provided_ingredients)
+				GROUP BY r.id
+				HAVING COUNT(DISTINCT ir.ingredient_id) = (SELECT COUNT(*) FROM ingredients_recipes ir2 WHERE ir2.recipe_id = r.id)
 			)
 			SELECT *
 			FROM recipes r
-			JOIN ingredient_filter if ON r.id = if.recipe_id
-			LEFT JOIN recipe_filter rf ON r.id = rf.id
-			WHERE rf.id IS NOT NULL OR '$2' IS NULL;
+			JOIN valid_recipes vr ON vr.recipe_id = r.id
+			WHERE (r.name LIKE '%' || $2 || '%' OR $2 IS NULL);
 			`,
 			[req.body.ingredients, req.body.name ?? ""]
 		);
