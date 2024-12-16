@@ -21,3 +21,6 @@ The "Add Recipe" section allows the user to input a recipe's details, including 
 The "Find Recipe" section allows the user to inputs ingredients and, optionally, a recipe name. Submitting a query will return recipe entries that can be made with the provided ingredient, optionally filtered by the provided name.
 
 The "Delete Recipe" section allows the user to delete a recipe based on the recipe's ID (obtained from the "Find Recipe" section).
+
+## Self link for CS50 submission
+This project is hosted on https://github.com/nothingnesses/Recipes
