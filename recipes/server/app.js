@@ -93,4 +93,40 @@ app.delete("/api/delete-recipe/:id", function (req, res, next) {
 	}
 });
 
+app.post("/api/find-recipe", async function (req, res, next) {
+	try {
+		const recipes = await db.any(
+			`
+			WITH ingredient_filter AS (
+				SELECT ir.recipe_id
+				FROM ingredients_recipes ir
+				JOIN ingredients i ON ir.ingredient_id = i.id
+				WHERE i.name IN ($1:csv)
+				GROUP BY ir.recipe_id
+			),
+			recipe_filter AS (
+				SELECT r.id
+				FROM recipes r
+				WHERE r.name ILIKE '%' || $2 || '%'
+			)
+			SELECT *
+			FROM recipes r
+			JOIN ingredient_filter if ON r.id = if.recipe_id
+			LEFT JOIN recipe_filter rf ON r.id = rf.id
+			WHERE rf.id IS NOT NULL OR '$2' IS NULL;
+			`,
+			[req.body.ingredients, req.body.name ?? ""]
+		);
+		console.log("Query for recipes succesful");
+		res.send({
+			data: recipes,
+		});
+	} catch (error) {
+		console.error(`Error querying recipes: ${error}`);
+		res.send({
+			error,
+		});
+	}
+});
+
 module.exports = app;
