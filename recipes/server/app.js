@@ -29,73 +29,68 @@ app.use(cors(cors_options));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 
-app.post("/api/add-recipe", function (req, res, next) {
-	db.one(
-		"INSERT INTO recipes(name, instructions, servings, preparation_time) VALUES($1, array_to_json($2), $3, $4) RETURNING id",
-		[
-			req.body.name,
-			req.body.instructions,
-			req.body.servings,
-			req.body.preparation_time,
-		]
-	)
-		.then((recipe_id) => {
-			console.log("Entry into recipes succesful");
-			req.body.ingredients.forEach((item, index) => {
-				db.one(
+app.post("/api/add-recipe", async function (req, res, next) {
+	try {
+		const recipe_id = await db.one(
+			"INSERT INTO recipes(name, instructions, servings, preparation_time) VALUES($1, array_to_json($2), $3, $4) RETURNING id",
+			[
+				req.body.name,
+				req.body.instructions,
+				req.body.servings,
+				req.body.preparation_time,
+			]
+		);
+		console.log("Entry into recipes succesful");
+		req.body.ingredients.forEach(async (item, index) => {
+			try {
+				const ingredient_id = await db.one(
 					"INSERT INTO ingredients(name) VALUES($1) ON CONFLICT (name) DO UPDATE SET name = $1 RETURNING id",
 					[item.name]
-				)
-					.then((ingredient_id) => {
-						console.log("Entry into ingredients succesful");
-						db.none(
-							"INSERT INTO ingredients_recipes(ingredient_id, recipe_id, value, unit) VALUES($1, $2, $3, $4)",
-							[
-								ingredient_id.id,
-								recipe_id.id,
-								item.quantity.value,
-								item.quantity.unit,
-							]
-						)
-							.then(() => {
-								console.log("Entry into ingredients_recipes succesful");
-							})
-							.catch((error) => {
-								console.error(
-									`Error inserting into ingredients_recipes : ${error}`
-								);
-							});
-					})
-					.catch((error) => {
-						console.error(`Error inserting into ingredients: ${error}`);
-					});
-			});
-			res.send({
-				data: recipe_id,
-			});
-		})
-		.catch((error) => {
-			console.error(`Error inserting into recipes: ${error}`);
-			res.send({
-				error,
-			});
+				);
+				console.log("Entry into ingredients succesful");
+				try {
+					await db.none(
+						"INSERT INTO ingredients_recipes(ingredient_id, recipe_id, value, unit) VALUES($1, $2, $3, $4)",
+						[
+							ingredient_id.id,
+							recipe_id.id,
+							item.quantity.value,
+							item.quantity.unit,
+						]
+					);
+					console.log("Entry into ingredients_recipes succesful");
+				} catch (error) {
+					console.error(`Error inserting into ingredients_recipes : ${error}`);
+				}
+			} catch (error) {
+				console.error(`Error inserting into ingredients: ${error}`);
+			}
 		});
+		res.send({
+			data: recipe_id,
+		});
+	} catch (error) {
+		console.error(`Error inserting into recipes: ${error}`);
+		res.send({
+			error,
+		});
+	}
 });
 
 app.delete("/api/delete-recipe/:id", function (req, res, next) {
-	db.none("DELETE FROM recipes WHERE id = $1", [req.params.id])
-		.then(() => {
-			console.log(`Succesfully deleted ${req.params.id} from recipes`);
-			res.send({
-				data: req.params.id,
-			});
-		})
-		.catch((error) => {
-			console.error(`Error deleting from recipes: ${error}`);
-			res.send({
-				error,
-			});
+	try {
+		await;
+		db.none("DELETE FROM recipes WHERE id = $1", [req.params.id]);
+		console.log(`Succesfully deleted ${req.params.id} from recipes`);
+		res.send({
+			data: req.params.id,
 		});
+	} catch (error) {
+		console.error(`Error deleting from recipes: ${error}`);
+		res.send({
+			error,
+		});
+	}
 });
 
 module.exports = app;
