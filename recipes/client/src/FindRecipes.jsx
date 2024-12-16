@@ -69,6 +69,7 @@ const FindRecipes = () => {
 						{recipes.map((recipeDetail, index) => (
 							<li key={index}>
 								<h3>{recipeDetail.recipe.name}</h3>
+								<p>ID: {recipeDetail.recipe.id}</p>
 								<p>Servings: {recipeDetail.recipe.servings}</p>
 								<p>
 									Preparation Time: {recipeDetail.recipe.preparation_time.value}{" "}
