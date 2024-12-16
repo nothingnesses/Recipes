@@ -65,14 +65,33 @@ const FindRecipes = () => {
 				<h2>Recipes</h2>
 				{recipes.length > 0 ? (
 					<ul>
-						{recipes.map((recipe) => (
-							<li key={recipe.id}>
-								<h3>{recipe.name}</h3>
-								<p>Servings: {recipe.servings}</p>
+						{recipes.map((recipeDetail, index) => (
+							<li key={index}>
+								<h3>{recipeDetail.recipe.name}</h3>
+								<p>Servings: {recipeDetail.recipe.servings}</p>
 								<p>
-									Preparation Time: {JSON.stringify(recipe.preparation_time)}
+									Preparation Time: {recipeDetail.recipe.preparation_time.value}{" "}
+									{recipeDetail.recipe.preparation_time.unit}
 								</p>
-								<p>Instructions: {JSON.stringify(recipe.instructions)}</p>
+								<h4>
+									Instructions
+								</h4>
+								<ol>
+									{recipeDetail.recipe.instructions.map((instruction, idx) => (
+										<li key={idx}>{instruction}</li>
+									))}
+								</ol>
+								<h4>
+									Ingredients
+								</h4>
+								<ul>
+									{recipeDetail.ingredients.map((ingredient, idx) => (
+										<li key={idx}>
+											{ingredient.ingredient_name}: {ingredient.quantity}{" "}
+											{ingredient.unit}
+										</li>
+									))}
+								</ul>
 							</li>
 						))}
 					</ul>
