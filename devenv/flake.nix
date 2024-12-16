@@ -35,8 +35,10 @@
         db-password = "root";
         db-port = 5432;
         db-user = "root";
-        subdomain = "recipes";
-        server-port = 3000;
+        backend-subdomain = "recipes-backend";
+        backend-port = 3000;
+        frontend-subdomain = "recipes-frontend";
+        frontend-port = 5173;
       in
       devenv.lib.mkShell {
         inherit inputs pkgs;
@@ -71,11 +73,18 @@
                 '';
                 enable = true;
                 package = pkgs-unstable.caddy;
-                virtualHosts."${subdomain}.${domain}" = {
+                virtualHosts."${backend-subdomain}.${domain}" = {
                   extraConfig = ''
                     encode gzip
                     tls ${config.env.DEVENV_STATE}/mkcert/_wildcard.${domain}.pem ${config.env.DEVENV_STATE}/mkcert/_wildcard.${domain}-key.pem
-                    reverse_proxy ${domain}:${builtins.toString server-port}
+                    reverse_proxy ${domain}:${builtins.toString backend-port}
+                  '';
+                };
+                virtualHosts."${frontend-subdomain}.${domain}" = {
+                  extraConfig = ''
+                    encode gzip
+                    tls ${config.env.DEVENV_STATE}/mkcert/_wildcard.${domain}.pem ${config.env.DEVENV_STATE}/mkcert/_wildcard.${domain}-key.pem
+                    reverse_proxy ${domain}:${builtins.toString frontend-port}
                   '';
                 };
               };
