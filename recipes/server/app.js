@@ -3,9 +3,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
+const pgp = require('pg-promise')();
+require('dotenv').config();
+const db = pgp(`postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASS}@${process.env.POSTGRES_URL}`);
 
 const cors_options = {
-	origin: ['https://recipes-frontend.localhost']
+	origin: [process.env.FRONTEND_URL]
 };
 
 var indexRouter = require('./routes/index');
