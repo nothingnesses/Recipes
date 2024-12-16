@@ -117,14 +117,45 @@ app.post("/api/find-recipes", async function (req, res, next) {
 			`,
 			[req.body.ingredients, req.body.name ?? ""]
 		);
-		console.log("Query for recipes succesful");
+		console.log("Query for recipes successful");
+
+		const recipeDetails = await Promise.all(
+			recipes.map(async (item) => {
+				try {
+					const ingredients = await db.any(
+						`
+					SELECT
+						i.name AS ingredient_name,
+						ir.value AS quantity,
+						ir.unit
+					FROM
+						ingredients_recipes ir
+					JOIN
+						ingredients i ON ir.ingredient_id = i.id
+					WHERE
+						ir.recipe_id = $1;
+					`,
+						[item.id]
+					);
+					console.log("Query for ingredients successful");
+					return {
+						recipe: item,
+						ingredients,
+					};
+				} catch (error) {
+					console.error(`Error querying ingredients: ${error}`);
+					throw error; // Rethrow the error to be caught by the outer catch block
+				}
+			})
+		);
+
 		res.send({
-			data: recipes,
+			data: recipeDetails,
 		});
 	} catch (error) {
 		console.error(`Error querying recipes: ${error}`);
-		res.send({
-			error,
+		res.status(500).send({
+			error: error.message,
 		});
 	}
 });
